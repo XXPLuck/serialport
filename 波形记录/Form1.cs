@@ -15,7 +15,8 @@ namespace 波形记录
 {
     public partial class Form1 : Form
     {
-        Series series = new Series("Spline");
+        Series series0 = new Series("Spline");  //添加一个序列
+        Series series1 = new Series("Spline1");
         
         public Form1()
         {
@@ -26,8 +27,10 @@ namespace 波形记录
         {
             label_data.Text = "";
             chart1.Series.Clear();
-            series.ChartType = SeriesChartType.Spline;
-            chart1.Series.Add(series);
+            series0.ChartType = SeriesChartType.Spline;  //设定曲线类型
+            chart1.Series.Add(series0);
+            series1.ChartType = SeriesChartType.Spline;
+            chart1.Series.Add(series1);
             System.Windows.Forms.Control.CheckForIllegalCrossThreadCalls = false;
             SearchAndAddSerialToCombobox(serialPort1, comboBox1);
             //comboBox2.Items.Add("1200");
@@ -74,18 +77,23 @@ namespace 波形记录
         /// <param name="e"></param>
         private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            byte[] data_receive = new byte[2];
+            byte[] data_receive = new byte[4];
             data_receive[0] = (byte)serialPort1.ReadByte();
             data_receive[1] = (byte)serialPort1.ReadByte();
-           // data_receive[2] = (byte)serialPort1.ReadByte();
+            data_receive[2] = (byte)serialPort1.ReadByte();
+            data_receive[3] = (byte)serialPort1.ReadByte();
 
             textBox1.AppendText((data_receive[0] + data_receive[1] * 256).ToString());
+            textBox1.AppendText(",");
+            textBox1.AppendText((data_receive[2] + data_receive[3] * 256).ToString());
             textBox1.AppendText(" " );
+
           //  textBox1.ScrollToCaret();
            // textBox1.AppendText(data_receive[0].ToString()+" ");
             //textBox1.AppendText(data_receive[1].ToString());
           //  textBox1.AppendText(data_receive[2].ToString()+"\r\n");
-            series.Points.AddY(data_receive[0] + data_receive[1] * 256);
+            series0.Points.AddY(data_receive[0] + data_receive[1] * 256);
+            series1.Points.AddY(data_receive[2] + data_receive[3] * 256);
             /*  int data_receive = serialPort1.ReadByte();
               textBox1.AppendText(data_receive.ToString()+" ");
               series.Points.AddY(data_receive);*/
