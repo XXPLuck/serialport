@@ -17,7 +17,9 @@ namespace 波形记录
     {
         Series series0 = new Series("Spline");  //添加一个序列
         Series series1 = new Series("Spline1");
-        
+        byte[] data_receive = new byte[256];
+        int start  = 0;
+        int Send=0;
         public Form1()
         {
             InitializeComponent();
@@ -77,41 +79,57 @@ namespace 波形记录
         /// <param name="e"></param>
         private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            byte[] data_receive = new byte[4];
-            data_receive[0] = (byte)serialPort1.ReadByte();
-            data_receive[1] = (byte)serialPort1.ReadByte();
-            data_receive[2] = (byte)serialPort1.ReadByte();
-            data_receive[3] = (byte)serialPort1.ReadByte();
+            int n;
+            n = serialPort1.BytesToRead;
+           // byte[] data_receive = new byte[4];
+            for (int i = 0; i < n; i++)
+            {
+                data_receive[Send++] = (byte)serialPort1.ReadByte();
+                Send = Send % 256;
+            }
+            serialPort1.DiscardInBuffer();
 
-            textBox1.AppendText((data_receive[0] + data_receive[1] * 256).ToString());
-            textBox1.AppendText(",");
-            textBox1.AppendText((data_receive[2] + data_receive[3] * 256).ToString());
-            textBox1.AppendText(" " );
+            if (((start + 4) % 256) <= Send)
+            {
+                //data_receive[1] = (byte)serialPort1.ReadByte();
+                //data_receive[2] = (byte)serialPort1.ReadByte();
+                //data_receive[3] = (byte)serialPort1.ReadByte();
 
-          //  textBox1.ScrollToCaret();
-           // textBox1.AppendText(data_receive[0].ToString()+" ");
-            //textBox1.AppendText(data_receive[1].ToString());
-          //  textBox1.AppendText(data_receive[2].ToString()+"\r\n");
-            series0.Points.AddY(data_receive[0] + data_receive[1] * 256);
-            series1.Points.AddY(data_receive[2] + data_receive[3] * 256);
-            /*  int data_receive = serialPort1.ReadByte();
-              textBox1.AppendText(data_receive.ToString()+" ");
-              series.Points.AddY(data_receive);*/
+                textBox1.AppendText((data_receive[start + 0] + data_receive[start + 1] * 256).ToString());
+                textBox1.AppendText(",");
+                textBox1.AppendText((data_receive[start + 2] + data_receive[start + 3] * 256).ToString());
+                textBox1.AppendText(" ");
+
+                //  textBox1.ScrollToCaret();
+                // textBox1.AppendText(data_receive[0].ToString()+" ");
+                //textBox1.AppendText(data_receive[1].ToString());
+                //  textBox1.AppendText(data_receive[2].ToString()+"\r\n");
+                series0.Points.AddY(data_receive[start + 0] + data_receive[start + 1] * 256);
+                series1.Points.AddY(data_receive[start + 2] + data_receive[start + 3] * 256);
+                /*  int data_receive = serialPort1.ReadByte();
+                  textBox1.AppendText(data_receive.ToString()+" ");
+                  series.Points.AddY(data_receive);*/
+                start += 4;
+                start = start % 256;
+            }
 
         }
 
         private void btn_scan_Click(object sender, EventArgs e)
         {
-            SearchAndAddSerialToCombobox(serialPort1, comboBox1);
+            SearchAndAddSerialToCombobox(serialPort1, comboBox1);        
         }
 
         private void btn_open_Click(object sender, EventArgs e)
         {
+           
             if (serialPort1.IsOpen)
-            {
+            {          
                 try
-                {
+                {   
                     serialPort1.Close();
+                    start = 0;
+                    Send = 0;
                     btn_open.Text = "打开";
                 }
                 catch
@@ -124,6 +142,8 @@ namespace 波形记录
                     serialPort1.PortName = comboBox1.Text;
                     serialPort1.BaudRate = Convert.ToInt32(comboBox2.Text.Trim());
                     serialPort1.Open();
+                    series1.Points.Clear();//波形历史数据清除
+                    series0.Points.Clear();
                     btn_open.Text = "关闭";
                 }
                 catch
@@ -146,6 +166,13 @@ namespace 波形记录
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string GR_Path = @"D:";
+            string fullFileName = GR_Path + "\\" + "fileName" + ".png";
+            chart1.SaveImage(fullFileName, System.Windows.Forms.DataVisualization.Charting.ChartImageFormat.Png);
         }
     }
 }
