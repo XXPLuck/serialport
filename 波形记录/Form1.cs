@@ -91,24 +91,15 @@ namespace 波形记录
 
             if (((start + 4) % 256) <= Send)
             {
-                //data_receive[1] = (byte)serialPort1.ReadByte();
-                //data_receive[2] = (byte)serialPort1.ReadByte();
-                //data_receive[3] = (byte)serialPort1.ReadByte();
-
+                textBox1.AppendText(" <");
                 textBox1.AppendText((data_receive[start + 0] + data_receive[start + 1] * 256).ToString());
                 textBox1.AppendText(",");
                 textBox1.AppendText((data_receive[start + 2] + data_receive[start + 3] * 256).ToString());
-                textBox1.AppendText(" ");
+                textBox1.AppendText("> ");
 
-                //  textBox1.ScrollToCaret();
-                // textBox1.AppendText(data_receive[0].ToString()+" ");
-                //textBox1.AppendText(data_receive[1].ToString());
-                //  textBox1.AppendText(data_receive[2].ToString()+"\r\n");
                 series0.Points.AddY(data_receive[start + 0] + data_receive[start + 1] * 256);
                 series1.Points.AddY(data_receive[start + 2] + data_receive[start + 3] * 256);
-                /*  int data_receive = serialPort1.ReadByte();
-                  textBox1.AppendText(data_receive.ToString()+" ");
-                  series.Points.AddY(data_receive);*/
+
                 start += 4;
                 start = start % 256;
             }
@@ -144,6 +135,7 @@ namespace 波形记录
                     serialPort1.Open();
                     series1.Points.Clear();//波形历史数据清除
                     series0.Points.Clear();
+                    textBox1.Clear();
                     btn_open.Text = "关闭";
                 }
                 catch
@@ -171,8 +163,20 @@ namespace 波形记录
         private void button1_Click(object sender, EventArgs e)
         {
             string GR_Path = @"D:";
-            string fullFileName = GR_Path + "\\" + "fileName" + ".png";
+            string fullFileName = GR_Path + "\\" + "fileName" + System.DateTime.Now.ToString("yyMMdd_HHmmss") + ".png";
             chart1.SaveImage(fullFileName, System.Windows.Forms.DataVisualization.Charting.ChartImageFormat.Png);
+            MessageBox.Show("保存成功！", "保存成功");
+        }
+
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            int high = this.Height;
+            int weid = this.Width;
+            chart1.Height = high / 2 - 10;
+            chart1.Width = weid - 100;
+            textBox1.Height = high/2-100;
+            textBox1.Width = weid-50;   
+            textBox1.Top = chart1.Top + high / 2 + 1;
         }
     }
 }
